@@ -1,8 +1,12 @@
-var http = require("http");
-var fs = require("fs");
+var http = require("http"); // protocol http
+var fs = require("fs"); // file system
 var url = require("url");
 var qs = require('querystring');
 
+// HTML 을 만들어주는 함수 리턴 값으로 html 스크립트를 출력함.
+// list : 글 목록
+// control : create, modify , delete가 필요에 의해 표시
+// body : 글의 내용
 function templateHTML(title, list, body, control) {
   return `
   <!doctype html>
@@ -21,6 +25,7 @@ function templateHTML(title, list, body, control) {
   `;
 }
 
+//파일리스트를 배열로 받아 html 형식의 ul 로 만들어 주는 함수
 function templateList(filelist) {
   var list = "<ul>";
   var i = 0;
@@ -33,8 +38,8 @@ function templateList(filelist) {
 
 }
 
-var app = http.createServer(function (request, response) {
-  var _url = request.url;
+var app = http.createServer(function (request, response) { // Create Server using request & response
+  var _url = request.url; // 요청된 request를 _url에 저장
   var queryData = url.parse(_url, true).query;
   var pathname = url.parse(_url, true).pathname;
 
