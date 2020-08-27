@@ -5,7 +5,7 @@ var qs = require('querystring');
 
 var template = require('./lib/template.js');
 var path = require('path');
-const { setFlagsFromString } = require("v8");
+var sanitizeHtml = require('sanitize-html');
 
 var app = http.createServer(function (request, response) { // Create Server using request & response
   var _url = request.url; // 요청된 request url 을 저장
@@ -33,11 +33,15 @@ var app = http.createServer(function (request, response) { // Create Server usin
             throw err;
           }
           var title = queryData.id;
+
+          var sanitizedTitle = sanitizeHtml(title);
+          var sanitizedDescription = sanitizeHtml(description);
+
           var list = template.list(filelist);
-          var HTML = template.HTML(title, list, `<h2>${title}</h2>${description}`, `<a href = "/create">create</a>  
-          <a href="/update?id=${title}">update</a>
+          var HTML = template.HTML(sanitizedTitle, list, `<h2>${sanitizedTitle}</h2>${sanitizedDescription}`, `<a href = "/create">create</a>  
+          <a href="/update?id=${sanitizedTitle}">update</a>
           <form action="delete_process" method = "post">
-            <input type = "hidden" name = "id" value="${title}">
+            <input type = "hidden" name = "id" value="${sanitizedTitle}">
             <input type = "submit" value="delete">
           </form>
           `); //descrption 을 내용으로 추가하고 control 인자에 update와 delete가 추가
