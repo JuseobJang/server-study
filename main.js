@@ -3,40 +3,9 @@ var fs = require("fs"); // file system
 var url = require("url");
 var qs = require('querystring');
 
-var template = {
-  HTML: function (title, list, body, control) {
-    // HTML 을 만들어주는 함수 리턴 값으로 html 스크립트를 출력함.
-    // list : 글 목록
-    // control : create, modify , delete가 필요에 의해 표시
-    // body : 글의 내용å
-    return `
-    <!doctype html>
-    <html>
-    <head>
-      <title>WEB1 - ${title}</title>
-      <meta charset="utf-8">
-    </head>
-    <body>
-      <h1><a href="/">WEB</a></h1>
-      ${list}
-      ${control}
-      ${body} 
-    </body>
-    </html>
-    `;
-  },
-  list: function (filelist) { //파일리스트를 배열로 받아 html 형식의 ul 로 만들어 주는 함수
-    var list = "<ul>";
-    var i = 0;
-    while (i < filelist.length) {
-      list += `<li><a href="/?id=${filelist[i]}">${filelist[i]}</a></li>`;
-      i++;
-    }
-    list += "</ul>";
-    return list;
-  }
-};
-
+var template = require('./lib/template.js');
+var path = require('path');
+const { setFlagsFromString } = require("v8");
 
 var app = http.createServer(function (request, response) { // Create Server using request & response
   var _url = request.url; // 요청된 request url 을 저장
@@ -52,13 +21,14 @@ var app = http.createServer(function (request, response) { // Create Server usin
         var title = "Welcome";
         var description = "Hello, Node.js";
         var list = template.list(filelist); // directory 내의 파일을 list화
-        var HTML = template.html(title, list, `<h2>${title}</h2>${description}`, `<a href = "/create">create</a>`); // html 생성
+        var HTML = template.HTML(title, list, `<h2>${title}</h2>${description}`, `<a href = "/create">create</a>`); // html 생성
         response.writeHead(200); //head 생성
         response.end(HTML); // html response
       });
     } else { // id 가 정의 되어 있는 경우
       fs.readdir("./data", (err, filelist) => {
-        fs.readFile(`./data/${queryData.id}`, "utf-8", (err, description) => { //디렉토리 안의 id 와 이름이 같은 파일의 내용을 description으로 넣음
+        var filteredId = path.parse(queryData.id).base;
+        fs.readFile(`./data/${filteredId}`, "utf-8", (err, description) => { //디렉토리 안의 id 와 이름이 같은 파일의 내용을 description으로 넣음
           if (err) {
             throw err;
           }
@@ -119,7 +89,8 @@ var app = http.createServer(function (request, response) { // Create Server usin
   }
   else if (pathname === '/update') { // update HTML form 생성
     fs.readdir('./data', (err, filelist) => {
-      fs.readFile(`data/${queryData.id}`, 'utf8', (err, description) => {
+      var filteredId = path.parse(queryData.id).base;
+      fs.readFile(`data/${filteredId}`, 'utf8', (err, description) => {
         var title = queryData.id;
         var list = template.list(filelist);
         var HTML = template.HTML(title, list,
@@ -171,7 +142,8 @@ var app = http.createServer(function (request, response) { // Create Server usin
     request.on('end', () => {
       var post = qs.parse(body);
       var id = post.id
-      fs.unlink(`data/${id}`, (err) => {
+      var filteredId = path.parse(id).base;
+      fs.unlink(`data/${filteredId}`, (err) => {
         response.writeHead(302, { Location: `/` })
         response.end();
       })
