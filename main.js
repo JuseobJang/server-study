@@ -3,40 +3,40 @@ var fs = require("fs"); // file system
 var url = require("url");
 var qs = require('querystring');
 
-// HTML 을 만들어주는 함수 리턴 값으로 html 스크립트를 출력함.
-// list : 글 목록
-// control : create, modify , delete가 필요에 의해 표시
-// body : 글의 내용
-function templateHTML(title, list, body, control) {
-  return `
-  <!doctype html>
-  <html>
-  <head>
-    <title>WEB1 - ${title}</title>
-    <meta charset="utf-8">
-  </head>
-  <body>
-    <h1><a href="/">WEB</a></h1>
-    ${list}
-    ${control}
-    ${body} 
-  </body>
-  </html>
-  `;
-}
-
-//파일리스트를 배열로 받아 html 형식의 ul 로 만들어 주는 함수
-function templateList(filelist) {
-  var list = "<ul>";
-  var i = 0;
-  while (i < filelist.length) {
-    list += `<li><a href="/?id=${filelist[i]}">${filelist[i]}</a></li>`;
-    i++;
+var template = {
+  HTML: function (title, list, body, control) {
+    // HTML 을 만들어주는 함수 리턴 값으로 html 스크립트를 출력함.
+    // list : 글 목록
+    // control : create, modify , delete가 필요에 의해 표시
+    // body : 글의 내용å
+    return `
+    <!doctype html>
+    <html>
+    <head>
+      <title>WEB1 - ${title}</title>
+      <meta charset="utf-8">
+    </head>
+    <body>
+      <h1><a href="/">WEB</a></h1>
+      ${list}
+      ${control}
+      ${body} 
+    </body>
+    </html>
+    `;
+  },
+  list: function (filelist) { //파일리스트를 배열로 받아 html 형식의 ul 로 만들어 주는 함수
+    var list = "<ul>";
+    var i = 0;
+    while (i < filelist.length) {
+      list += `<li><a href="/?id=${filelist[i]}">${filelist[i]}</a></li>`;
+      i++;
+    }
+    list += "</ul>";
+    return list;
   }
-  list += "</ul>";
-  return list;
+};
 
-}
 
 var app = http.createServer(function (request, response) { // Create Server using request & response
   var _url = request.url; // 요청된 request url 을 저장
@@ -51,10 +51,10 @@ var app = http.createServer(function (request, response) { // Create Server usin
         }
         var title = "Welcome";
         var description = "Hello, Node.js";
-        var list = templateList(filelist); // directory 내의 파일을 list화
-        var template = templateHTML(title, list, `<h2>${title}</h2>${description}`, `<a href = "/create">create</a>`); // html 생성
+        var list = template.list(filelist); // directory 내의 파일을 list화
+        var HTML = template.html(title, list, `<h2>${title}</h2>${description}`, `<a href = "/create">create</a>`); // html 생성
         response.writeHead(200); //head 생성
-        response.end(template); // html response
+        response.end(HTML); // html response
       });
     } else { // id 가 정의 되어 있는 경우
       fs.readdir("./data", (err, filelist) => {
@@ -63,8 +63,8 @@ var app = http.createServer(function (request, response) { // Create Server usin
             throw err;
           }
           var title = queryData.id;
-          var list = templateList(filelist);
-          var template = templateHTML(title, list, `<h2>${title}</h2>${description}`, `<a href = "/create">create</a>  
+          var list = template.list(filelist);
+          var HTML = template.HTML(title, list, `<h2>${title}</h2>${description}`, `<a href = "/create">create</a>  
           <a href="/update?id=${title}">update</a>
           <form action="delete_process" method = "post">
             <input type = "hidden" name = "id" value="${title}">
@@ -72,7 +72,7 @@ var app = http.createServer(function (request, response) { // Create Server usin
           </form>
           `); //descrption 을 내용으로 추가하고 control 인자에 update와 delete가 추가
           response.writeHead(200);
-          response.end(template);
+          response.end(HTML);
         });
       });
     }
@@ -83,8 +83,8 @@ var app = http.createServer(function (request, response) { // Create Server usin
         throw err;
       }
       var title = "WEB - create";
-      var list = templateList(filelist);
-      var template = templateHTML(title, list, `
+      var list = template.list(filelist);
+      var HTML = template.HTML(title, list, `
         <form action="/create_process" method="post">
           <p><input type="text" name="title" placeholder="title"></p>
           <p>
@@ -96,7 +96,7 @@ var app = http.createServer(function (request, response) { // Create Server usin
         </form>
       `, ``); //form 형식으로 /create_process 로 보냄
       response.writeHead(200);
-      response.end(template);
+      response.end(HTML);
     });
   }
   else if (pathname === "/create_process") {
@@ -121,8 +121,8 @@ var app = http.createServer(function (request, response) { // Create Server usin
     fs.readdir('./data', (err, filelist) => {
       fs.readFile(`data/${queryData.id}`, 'utf8', (err, description) => {
         var title = queryData.id;
-        var list = templateList(filelist);
-        var template = templateHTML(title, list,
+        var list = template.list(filelist);
+        var HTML = template.HTML(title, list,
           `
           <form action="/update_process" method="post">
             <input type ="hidden" name ="id" value ="${title}">
@@ -138,7 +138,7 @@ var app = http.createServer(function (request, response) { // Create Server usin
           `<a href="/create">create</a> <a href="/update?id=${title}">update</a>`
         );
         response.writeHead(200);
-        response.end(template);
+        response.end(HTML);
       });
     });
   }
