@@ -4,6 +4,7 @@ var fs = require("fs"); // file system
 var template = require('./lib/template.js');
 var path = require('path');
 var sanitizeHtml = require('sanitize-html');
+var qs = require('querystring');
 
 
 
@@ -45,6 +46,47 @@ app.get('/page/:pageId', (request, response) => {
       response.send(HTML);
     });
   });
+})
+
+app.get('/create', (request, response) => {
+  fs.readdir("./data", (err, filelist) => {
+    if (err) {
+      throw err;
+    }
+    var title = "WEB - create";
+    var list = template.list(filelist);
+    var HTML = template.HTML(title, list, `
+      <form action="/create_process" method="post">
+        <p><input type="text" name="title" placeholder="title"></p>
+        <p>
+          <textarea name="description" placeholder="description"></textarea>
+        </p>
+        <p>
+          <input type="submit">
+        </p>
+      </form>
+    `, ``); //form 형식으로 /create_process 로 보냄
+    response.send(HTML);
+  });
+})
+
+app.post('/create_process', (request, response) => {
+  var body = ``;
+  request.on('data', (data) => {
+    body += data;
+  })
+  request.on('end', () => {
+    var post = qs.parse(body); //data 내용 을 qs 로 parsing
+    var title = post.title; // 제목 저장
+    var description = post.description; // 내용 저장
+    fs.writeFile(`data/${title}`, description, 'utf-8', (err) => { // 제목을 파일 명으로 하여 파일 생성
+      if (err) throw err;
+      response.writeHead(302, { Location: `/?id=${title}` }); // 302 redirection
+      response.end();
+
+    })
+  })
+
 })
 
 app.listen(port, () => {
