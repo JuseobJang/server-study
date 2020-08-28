@@ -1,4 +1,57 @@
-var http = require("http"); // protocol http
+var express = require('express')
+var app = express()
+var fs = require("fs"); // file system
+var template = require('./lib/template.js');
+var path = require('path');
+var sanitizeHtml = require('sanitize-html');
+
+
+
+const port = 3000
+
+app.get('/', (request, response) => {
+  fs.readdir("./data", (err, filelist) => { //read directory
+    if (err) {
+      throw err;
+    }
+    var title = "Welcome";
+    var description = "Hello, Node.js";
+    var list = template.list(filelist); // directory 내의 파일을 list화
+    var HTML = template.HTML(title, list, `<h2>${title}</h2>${description}`, `<a href = "/create">create</a>`); // html 생성
+    response.send(HTML); // html response
+  });
+})
+
+app.get('/page/:pageId', (request, response) => {
+  fs.readdir("./data", (err, filelist) => {
+    var filteredId = path.parse(request.params.pageId).base;
+    fs.readFile(`./data/${filteredId}`, "utf-8", (err, description) => { //디렉토리 안의 id 와 이름이 같은 파일의 내용을 description으로 넣음
+      if (err) {
+        throw err;
+      }
+      var title = request.params.pageId;
+
+      var sanitizedTitle = sanitizeHtml(title);
+      var sanitizedDescription = sanitizeHtml(description);
+
+      var list = template.list(filelist);
+      var HTML = template.HTML(sanitizedTitle, list, `<h2>${sanitizedTitle}</h2>${sanitizedDescription}`, `<a href = "/create">create</a>
+      <a href="/update?id=${sanitizedTitle}">update</a>
+      <form action="delete_process" method = "post">
+        <input type = "hidden" name = "id" value="${sanitizedTitle}">
+        <input type = "submit" value="delete">
+      </form>
+      `); //descrption 을 내용으로 추가하고 control 인자에 update와 delete가 추가
+      response.send(HTML);
+    });
+  });
+})
+
+app.listen(port, () => {
+  console.log(`Example app listening at http://localhost:${port}`)
+})
+
+/*var http = require("http"); // protocol http
 var fs = require("fs"); // file system
 var url = require("url");
 var qs = require('querystring');
@@ -13,7 +66,7 @@ var app = http.createServer(function (request, response) { // Create Server usin
   var pathname = url.parse(_url, true).pathname; //url을 parsing 해서 pathname 저장
 
   if (pathname === "/") { // root directory
-    if (queryData.id === undefined) { //id 미정의 
+    if (queryData.id === undefined) { //id 미정의
       fs.readdir("./data", (err, filelist) => { //read directory
         if (err) {
           throw err;
@@ -38,7 +91,7 @@ var app = http.createServer(function (request, response) { // Create Server usin
           var sanitizedDescription = sanitizeHtml(description);
 
           var list = template.list(filelist);
-          var HTML = template.HTML(sanitizedTitle, list, `<h2>${sanitizedTitle}</h2>${sanitizedDescription}`, `<a href = "/create">create</a>  
+          var HTML = template.HTML(sanitizedTitle, list, `<h2>${sanitizedTitle}</h2>${sanitizedDescription}`, `<a href = "/create">create</a>
           <a href="/update?id=${sanitizedTitle}">update</a>
           <form action="delete_process" method = "post">
             <input type = "hidden" name = "id" value="${sanitizedTitle}">
@@ -84,7 +137,7 @@ var app = http.createServer(function (request, response) { // Create Server usin
       var description = post.description; // 내용 저장
       fs.writeFile(`data/${title}`, description, 'utf-8', (err) => { // 제목을 파일 명으로 하여 파일 생성
         if (err) throw err;
-        response.writeHead(302, { Location: `/?id=${title}` }); // 302 redirection 
+        response.writeHead(302, { Location: `/?id=${title}` }); // 302 redirection
         response.end();
 
       })
@@ -129,7 +182,7 @@ var app = http.createServer(function (request, response) { // Create Server usin
       var description = post.description;
 
       fs.rename(`data/${id}`, `data/${title}`, (err,) => { // 이름 변경
-        fs.writeFile(`data/${title}`, description, 'utf-8', (err) => { // 파일 쓰기 
+        fs.writeFile(`data/${title}`, description, 'utf-8', (err) => { // 파일 쓰기
           if (err) throw err;
           response.writeHead(302, { Location: `/?id=${title}` }); // 302 redirection
           response.end();
@@ -138,7 +191,7 @@ var app = http.createServer(function (request, response) { // Create Server usin
       })
     })
   }
-  else if (pathname === '/delete_process') { // 
+  else if (pathname === '/delete_process') { //
     var body = ``;
     request.on('data', (data) => {
       body += data;
@@ -158,4 +211,6 @@ var app = http.createServer(function (request, response) { // Create Server usin
     response.end("Not found");
   }
 });
-app.listen(3000);
+app.listen(3000); */
+
+
