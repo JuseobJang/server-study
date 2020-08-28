@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/wntjq68/NodeJs-#readme",
   "dependencies": {
+    "express": "^4.17.1",
     "sanitize-html": "^1.27.4"
   }
 }
