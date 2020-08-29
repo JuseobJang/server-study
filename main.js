@@ -38,7 +38,7 @@ app.get('/page/:pageId', (request, response) => {
       var list = template.list(filelist);
       var HTML = template.HTML(sanitizedTitle, list, `<h2>${sanitizedTitle}</h2>${sanitizedDescription}`, `<a href = "/create">create</a>
       <a href="/update/${sanitizedTitle}">update</a>
-      <form action="delete_process" method = "post">
+      <form action="/delete_process" method = "post">
         <input type = "hidden" name = "id" value="${sanitizedTitle}">
         <input type = "submit" value="delete">
       </form>
@@ -81,9 +81,7 @@ app.post('/create_process', (request, response) => {
     var description = post.description; // 내용 저장
     fs.writeFile(`data/${title}`, description, 'utf-8', (err) => { // 제목을 파일 명으로 하여 파일 생성
       if (err) throw err;
-      response.writeHead(302, { Location: `/?id=${title}` }); // 302 redirection
-      response.end();
-
+      response.redirect(`/page/${title}`);
     })
   })
 
@@ -108,7 +106,7 @@ app.get('/update/:pageId', (request, response) => {
           </p>
         </form>
         `,
-        `<a href="/create">create</a> <a href="/update?id=${title}">update</a>`
+        `<a href="/create">create</a> <a href="/update/${title}">update</a>`
       );
       response.send(HTML);
     });
@@ -128,12 +126,27 @@ app.post('/update_process', (request, response) => {
     fs.rename(`data/${id}`, `data/${title}`, (err,) => { // 이름 변경
       fs.writeFile(`data/${title}`, description, 'utf-8', (err) => { // 파일 쓰기
         if (err) throw err;
-        response.writeHead(302, { Location: `/page/${title}` }); // 302 redirection
-        response.end();
+        response.redirect(`/page/${title}`)
 
       });
     });
   });
+
+})
+
+app.post('/delete_process', (request, response) => {
+  var body = ``;
+  request.on('data', (data) => {
+    body += data;
+  })
+  request.on('end', () => {
+    var post = qs.parse(body);
+    var id = post.id
+    var filteredId = path.parse(id).base;
+    fs.unlink(`data/${filteredId}`, (err) => {
+      response.redirect('/');
+    })
+  })
 
 })
 
