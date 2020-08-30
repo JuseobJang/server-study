@@ -10,7 +10,7 @@ var qs = require('querystring');
 var bodyParser = require('body-parser');
 var compresstion = require('compression');
 
-
+app.use(express.static('public'));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(compresstion());
 
@@ -27,7 +27,12 @@ app.get('/', (request, response) => {
   var title = "Welcome";
   var description = "Hello, Node.js";
   var list = template.list(request.list); // directory 내의 파일을 list화
-  var HTML = template.HTML(title, list, `<h2>${title}</h2>${description}`, `<a href = "/create">create</a>`); // html 생성
+  var HTML = template.HTML(title, list,
+    `
+  <h2>${title}</h2>${description}
+  <img src="/image/hello.jpg" style="width : 300px; display : block; margin-top : 10px ">
+  `,
+    `<a href = "/create">create</a>`); // html 생성
   response.send(HTML); // html response
 })
 
@@ -133,6 +138,8 @@ app.post('/delete_process', (request, response) => {
     response.redirect('/');
   })
 })
+
+
 
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`)
