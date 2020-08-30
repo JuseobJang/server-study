@@ -14,18 +14,10 @@ var template = require('../lib/template.js');
 router.get('/create', (request, response) => {
     var title = "WEB - create";
     var list = template.list(request.list);
-    var control = template.createControl()
-    var HTML = template.HTML(title, list, `
-        <form action="/topic/create_process" method="post">
-          <p><input type="text" name="title" placeholder="title"></p>
-          <p>
-            <textarea name="description" placeholder="description"></textarea>
-          </p>
-          <p>
-            <input type="submit">
-          </p>
-        </form>
-      `, control); //form 형식으로 /create_process 로 보냄
+    var body = template.createBody();
+    var control = template.createControl();
+
+    var HTML = template.HTML(title, list, body, control); //form 형식으로 /create_process 로 보냄
 
     response.send(HTML);
 })
@@ -64,21 +56,10 @@ router.get('/update/:pageId', (request, response) => {
     fs.readFile(`data/${filteredId}`, 'utf8', (err, description) => {
         var title = request.params.pageId;
         var list = template.list(request.list);
+        var body = template.updateBody(title, description);
         var control = template.updateControl(title);
-        var HTML = template.HTML(title, list,
-            `
-        <form action="/topic/update_process" method="post">
-          <input type ="hidden" name ="id" value ="${title}">
-          <p><input type="text" name="title" placeholder="title" value ="${title}"></p>
-          <p>
-          <textarea name="description" placeholder="description">${description}</textarea>
-          </p>
-          <p>
-            <input type="submit">
-          </p>
-        </form>
-        `, control
-        );
+
+        var HTML = template.HTML(title, list, body, control);
         response.send(HTML);
     });
 })
@@ -105,9 +86,10 @@ router.get('/:pageId', (request, response, next) => {
         var sanitizedDescription = sanitizeHtml(description);
 
         var list = template.list(request.list);
+        var body = template.topicBody(sanitizedTitle, sanitizedDescription);
         var control = template.topicControl(sanitizedTitle);
 
-        var HTML = template.HTML(sanitizedTitle, list, `<h2>${sanitizedTitle}</h2>${sanitizedDescription}`, control); //descrption 을 내용으로 추가하고 control 인자에 update와 delete가 추가
+        var HTML = template.HTML(sanitizedTitle, list, body, control); //descrption 을 내용으로 추가하고 control 인자에 update와 delete가 추가
         response.send(HTML);
     });
 })
