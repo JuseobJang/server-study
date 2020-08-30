@@ -1,22 +1,26 @@
 var express = require('express')
-var router = express.Router();
+var router = express.Router(); //app = express() 와는 다르게 express.Router() 로 실행
 
-var fs = require("fs");
-var path = require('path');
-var sanitizeHtml = require('sanitize-html');
-var template = require('../lib/template.js');
-
-
+var fs = require("fs"); // file system
+var path = require('path'); // path moudule ex) path.base()
+var sanitizeHtml = require('sanitize-html'); // sanitizeHTML module 위험 태그를 걸러주고, 원하는 태그 취사 선택 가능
+var template = require('../lib/template.js'); // template module
 
 
 
 
-router.get('/create', (request, response) => {
+
+
+
+
+// 실제 url 은 앞에 /topic을 포함한다고 할 수 있음
+router.get('/create', (request, response) => { // 
+    // tmplate.HTML() 의 인수로 필요한 title, list, body , control 정의!
     var title = "WEB - create";
     var list = template.list(request.list);
     var body = template.createBody();
     var control = template.createControl();
-
+    // HTML template 생성
     var HTML = template.HTML(title, list, body, control); //form 형식으로 /create_process 로 보냄
 
     response.send(HTML);
@@ -24,12 +28,12 @@ router.get('/create', (request, response) => {
 
 router.post('/create_process', (request, response) => {
 
-    var post = request.body; // using body-parser 
+    var post = request.body // body-parser middle 를 사용하였기 떄문에 request.on 불필요 reqeust.body = { title : ~~~ ,description : ~~~}
     var title = post.title;
     var description = post.description;
     fs.writeFile(`data/${title}`, description, 'utf-8', (err) => {
         if (err) throw err;
-        response.redirect(`/topic/${title}`);
+        response.redirect(`/topic/${title}`); // redirect
     })
 })
 
