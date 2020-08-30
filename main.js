@@ -140,12 +140,12 @@ app.post('/delete_process', (request, response) => {
 })
 
 app.use(function (req, res, next) {
-  res.status(404).send("Sorry can't find that!"); // error 처리
+  res.status(404).send("Sorry can't find that!"); // 404 error 처리
 })
 
 app.use(function (err, req, res, next) {
   console.error(err.stack);
-  res.status(500).send("Something broke!");
+  res.status(500).send("Something broke!"); // 500 error 처리
 })
 
 app.listen(port, () => {
