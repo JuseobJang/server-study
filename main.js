@@ -4,7 +4,8 @@ var fs = require("fs"); // file system
 var template = require('./lib/template.js'); // template module
 var topicRouter = require('./routes/topic.js') // topic router module
 
-//middle-ware
+
+var helmet = require('helmet'); // 보안 모듈
 var bodyParser = require('body-parser'); // request.on() 을 간결하게 해줌
 var compresstion = require('compression'); // request/response 간에 압축 형식으로 데이터 전송
 
@@ -14,6 +15,7 @@ const port = 3000 // port 번호 3000
 app.use(express.static('public')); //이미지와 같은 정적인 파일을 불러 올떄 사용, /public 폴더를 우선으로 검색
 app.use(bodyParser.urlencoded({ extended: false })); // body-parser middle ware
 app.use(compresstion()); // compression middle-ware
+app.use(helmet()); // 보안 middle-ware
 
 app.get('*', function (request, response, next) { // 모든(*), url 경로 상관없이 ./data에서 파일 리스트를 뽑아 request.list 에 담아 어디서든 사용 가능, next() : 다음 middle-ware 실행
   fs.readdir("./data", (err, filelist) => { //read directory
